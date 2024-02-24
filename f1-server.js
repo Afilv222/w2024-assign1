@@ -240,6 +240,218 @@ app.get('/api/races/:raceId', async (req, res) => {
   }
 });
 
+app.get('/api/races/season/:year', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('races')
+      .select('*')
+      .eq('year',req.params.year)
+      .order('round')
+      
+    
+      
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.year)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
+
+app.get('/api/races/season/:year/:round', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('races')
+      .select('*')
+      .eq('year',req.params.year)
+      .eq('round',req.params.round)
+      
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.year)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
+
+app.get('/api/races/circuits/:ref', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('races')
+      .select(`* , circuits!inner()`)
+      .eq('circuits.circuitRef',req.params.ref)
+      .order('year')
+      
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.ref)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
+
+app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('races')
+      .select(`* , circuits!inner()`)
+      .eq('circuits.circuitRef',req.params.ref)
+      .gte('year',req.params.start) //greater than or equal to
+      .lte('year',req.params.end) // less than or equal to
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.ref)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
+
+
+app.get('/api/results/:raceId', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('results')
+      .select(`drivers(driverRef, code, forename, surname),races(name, round, year,date),constructors(name, constructorRef, nationality)` )
+      .eq('raceId',req.params.raceId)
+      .order('grid',{ ascending: true })
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.ref)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
+app.get('/api/results/driver/:ref', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('results')
+      .select(`*, drivers!inner()` )
+      .eq('drivers.driverRef',req.params.ref)
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.ref)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
+
+app.get('/api/results/driver/:ref/seasons/:start/:end', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('results')
+      .select(`* , drivers!inner(),races!inner()`)
+      .eq('drivers.driverRef',req.params.ref)
+      .gte('races.year',req.params.start) //greater than or equal to
+      .lte('races.year',req.params.end) // less than or equal to
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.ref)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
+// Come back to this, make sure this is correct 
+app.get('/api/qualifying/:raceId', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('qualifying')
+      .select(`* ,races!inner(*)`)
+      .eq('races.raceId',req.params.raceId)
+      .order('position',{ ascending: true })
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.ref)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
+
+app.get('/api/standings/:raceId/drivers', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('driverStandings')
+      .select(`* ,results!inner()`)
+      //.eq('races.raceId',req.params.raceId)
+      .eq('results.raceId',req.params.raceId)
+      .order('position',{ ascending: true })
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.ref)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: 'Server Error' });
+  }
+});
+
 
 
 const errorHandler = (res,req) => {
