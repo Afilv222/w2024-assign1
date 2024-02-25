@@ -279,7 +279,22 @@ app.get('/api/races/season/:year/:round', async (req, res) => {
     }  
       
     if (!data || data.length === 0) {
-        return errorHandler(res, req.params.year)    
+        const {data, error} = await supabase
+          .from('races')
+          .select('*')
+          .eq('year',req.params.year)
+        
+        const {data:round, error:error1} = await supabase
+          .from('races')
+          .select('*')
+          .eq('round',req.params.round)
+        
+        if(data.length === 0){
+            return errorHandler(res, req.params.year)  
+        }else{
+            return errorHandler(res, req.params.round)  
+        }
+            
     }
 
     res.send(data);
@@ -327,7 +342,26 @@ app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
     }  
       
     if (!data || data.length === 0) {
-        return errorHandler(res, req.params.ref)    
+      
+      const {data, error} = await supabase
+        .from('races')
+        .select('year', { count: 'exact' })
+        .order('year', { ascending: false })
+        .limit(1);
+      
+      const {data:ref, error:error1} = await supabase
+      .from('circuits')
+      .select('circuitRef')
+      .eq('circuitRef',req.params.ref)
+        
+      
+      if(ref.length === 0){
+        return errorHanldingRef(res, req) 
+      }else{
+        return errorHanldingYear(res, req, data[0].year) 
+      }  
+      
+        //return errorHandler(res, req.params.ref)    
     }
 
     res.send(data);
@@ -391,17 +425,36 @@ app.get('/api/results/driver/:ref/seasons/:start/:end', async (req, res) => {
   try{
       const {data, error} = await supabase
       .from('results')
-      .select(`* , drivers!inner(),races!inner()`)
+      .select(`* , drivers!inner(),races!inner(year)`)
       .eq('drivers.driverRef',req.params.ref)
       .gte('races.year',req.params.start) //greater than or equal to
       .lte('races.year',req.params.end) // less than or equal to
     
     if (error) {
+        //console.log(error)
         throw error;
     }  
       
     if (!data || data.length === 0) {
-        return errorHandler(res, req.params.ref)    
+        
+      const {data, error} = await supabase
+        .from('races')
+        .select('year', { count: 'exact' })
+        .order('year', { ascending: false })
+        .limit(1);
+      
+      const {data:ref, error:error1} = await supabase
+      .from('drivers')
+      .select('driverRef')
+      .eq('driverRef',req.params.ref)
+        
+           
+      if(ref.length === 0){
+        return errorHanldingRef(res, req) 
+      }else{
+        return errorHanldingYear(res, req, data[0].year) 
+      }  
+    
     }
 
     res.send(data);
@@ -424,7 +477,7 @@ app.get('/api/qualifying/:raceId', async (req, res) => {
     }  
       
     if (!data || data.length === 0) {
-        return errorHandler(res, req.params.ref)    
+        return errorHandler(res, req.params.raceId)    
     }
 
     res.send(data);
@@ -447,12 +500,12 @@ app.get('/api/standings/:raceId/drivers', async (req, res) => {
     }  
       
     if (!data || data.length === 0) {
-        return errorHandler(res, req.params.ref)    
+        return errorHandler(res, req.params.raceId)    
     }
 
     res.send(data);
   }catch{
-    res.json({ error: 'Server Error' });
+    res.json({ error: `Error you entered in ${req.params.raceId} which is not a valid parameter, this should be a number`});
   }
 });
 
@@ -483,11 +536,24 @@ app.get('/api/standings/:raceId/constructors', async (req, res) => {
 
 
 const errorHandler = (res,req) => {
-  return res.json({ error: `not found ${req}` }); 
+  return res.json({ error: `${req} does not exist in database` }); 
 }
 
 
+const errorHanldingYear = (res,req,latest_year) => {
+  
+    if(req.params.start > req.params.end ){
+        return res.json({ error: `Error you entered in ${req.params.start} as start year and ${req.params.end} as end year, which is incorrect your start year needs to be less than end year` });
+    }else if(req.params.start > latest_year ){
+        return res.json({ error: `Error the start year ${req.params.start} you entered does not exist in database the lastest year is ${latest_year}`}) 
+    }else{
+        return res.json({ error: `No data found for ${req.params.ref} between these years ${req.params.start}-${req.params.end}`});
+    }
+}
 
+ const errorHanldingRef = (res,req) => {
+     return res.json({ error: `Error the ref you entered in (${req.params.ref}) does not exist in database`})
+ }
 
 
 
