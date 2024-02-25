@@ -155,18 +155,18 @@ app.get('/api/drivers/:ref', async (req, res) => {
       const {data, error} = await supabase
       .from('drivers')
       .select('*')
-      .eq('driverRef',req.params.ref)
+      .eq('driverRef',req.params.ref);
     
       
-    if (error) {
-        throw error;
-    }  
-      
-    if (!data || data.length === 0) {
-        return errorHandler(res, req.params.ref)    
-    }
+      if (error) {
+          throw error;
+      }  
 
-    res.send(data);
+      if (!data || data.length === 0) {
+          return errorHandler(res, req.params.ref)    
+      }
+
+      res.send(data);
   }catch{
     res.json({ error: 'Server Error' });
   }
@@ -337,12 +337,17 @@ app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
 });
 
 
-
 app.get('/api/results/:raceId', async (req, res) => {
   try{
       const {data, error} = await supabase
       .from('results')
-      .select(`drivers(driverRef, code, forename, surname),races(name, round, year,date),constructors(name, constructorRef, nationality)` )
+      //.select(`drivers(driverRef, code, forename, surname),races(name, round, year,date),constructors(name, constructorRef, nationality)` )
+      .select(`resultId, number, grid, 
+              position, positionText, positionOrder, points, laps, time, milliseconds, 
+              fastestLap, rank, fastestLapTime, fastestLapSpeed, statusId, 
+              drivers(driverRef, code, forename, surname),
+              races(name, round, year, date),
+              constructors(name, constructorRef, nationality)`)
       .eq('raceId',req.params.raceId)
       .order('grid',{ ascending: true })
     
@@ -410,8 +415,8 @@ app.get('/api/qualifying/:raceId', async (req, res) => {
   try{
       const {data, error} = await supabase
       .from('qualifying')
-      .select(`* ,races!inner(*)`)
-      .eq('races.raceId',req.params.raceId)
+      .select(`qualifyId,number,position,q1,q2,q3, drivers(driverRef, code, forename, surname), races(name, round, year, date), constructors(name, constructorRef, nationality)`)
+      .eq('raceId',req.params.raceId)
       .order('position',{ ascending: true })
     
     if (error) {
@@ -433,9 +438,8 @@ app.get('/api/standings/:raceId/drivers', async (req, res) => {
   try{
       const {data, error} = await supabase
       .from('driverStandings')
-      .select(`* ,results!inner()`)
-      //.eq('races.raceId',req.params.raceId)
-      .eq('results.raceId',req.params.raceId)
+      .select(`driverStandingsId,raceId,points,position,positionText,wins , drivers(driverRef, code, forename, surname)`)
+      .eq('raceId',req.params.raceId)
       .order('position',{ ascending: true })
     
     if (error) {
@@ -451,6 +455,30 @@ app.get('/api/standings/:raceId/drivers', async (req, res) => {
     res.json({ error: 'Server Error' });
   }
 });
+
+app.get('/api/standings/:raceId/constructors', async (req, res) => {
+  try{
+      const {data, error} = await supabase
+      .from('constructorStandings')
+      .select(`constructorStandingsId,raceId,points,position,positionText,wins , constructors(name, constructorRef, nationality)`)
+      .eq('raceId',req.params.raceId)
+      .order('position',{ ascending: true })
+    
+    if (error) {
+        throw error;
+    }  
+      
+    if (!data || data.length === 0) {
+        return errorHandler(res, req.params.raceId)    
+    }
+
+    res.send(data);
+  }catch{
+    res.json({ error: `Error you entered in ${req.params.raceId} which is not a valid parameter, this should be a number` });
+  }
+});
+
+
 
 
 
