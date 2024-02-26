@@ -11,6 +11,9 @@ const supabase = supa.createClient(supaUrl, supaAnonKey);
 
 
 
+/*
+  This query will get all the seasons from the supabase database 
+*/
 app.get('/api/seasons', async (req, res) => {
     const {data, error} = await supabase
     .from('seasons')
@@ -25,6 +28,11 @@ app.get('/api/seasons', async (req, res) => {
     res.send(data);
 });
 
+
+
+/*
+  This query will get all the circuits 
+*/
 app.get('/api/circuits', async (req, res) => {
     const {data, error} = await supabase
     .from('circuits')
@@ -39,6 +47,9 @@ app.get('/api/circuits', async (req, res) => {
     res.send(data);
 });
 
+/*
+  This query will get all the specified circuit using circuitRef field 
+*/
 app.get('/api/circuits/:ref', async (req, res) => {
   try{
     const {data, error} = await supabase
@@ -62,6 +73,9 @@ app.get('/api/circuits/:ref', async (req, res) => {
   
 });
 
+/*
+  This query will get all the specified circuit for seasons based on the specified year by round ascending order
+*/
 app.get('/api/circuits/season/:year', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -85,6 +99,9 @@ app.get('/api/circuits/season/:year', async (req, res) => {
   }
 });
 
+/*
+  This query will get all the constructors 
+*/
 app.get('/api/constructors', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -106,7 +123,9 @@ app.get('/api/constructors', async (req, res) => {
   }
 });
 
-
+/*
+  This query will get all the constructors with using specified constructorRef 
+*/
 app.get('/api/constructors/:ref', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -129,6 +148,9 @@ app.get('/api/constructors/:ref', async (req, res) => {
   }
 });
 
+/*
+  This query will get all the drivers from supabase 
+*/
 app.get('/api/drivers', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -150,6 +172,9 @@ app.get('/api/drivers', async (req, res) => {
   }
 });
 
+/*
+  This query will get all the drivers with a specified diverRef 
+*/
 app.get('/api/drivers/:ref', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -172,6 +197,9 @@ app.get('/api/drivers/:ref', async (req, res) => {
   }
 });
 
+/*
+  This query will get all the drivers who surname brings with the provided substring for example sch, this is also caseinsensitive
+*/
 app.get('/api/drivers/search/:substring', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -194,7 +222,9 @@ app.get('/api/drivers/search/:substring', async (req, res) => {
   }
 });
 
-
+/*
+  This query will get all the drivers within a given race with their raceId
+*/
 app.get('/api/drivers/race/:raceId', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -217,6 +247,9 @@ app.get('/api/drivers/race/:raceId', async (req, res) => {
   }
 });
 
+/*
+  This query will get just the specified race using the provided raceID, this will also include only certain columns from circuits 
+*/
 app.get('/api/races/:raceId', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -240,6 +273,9 @@ app.get('/api/races/:raceId', async (req, res) => {
   }
 });
 
+/*
+  This query will get all races from given season year ordered by round 
+*/
 app.get('/api/races/season/:year', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -264,7 +300,9 @@ app.get('/api/races/season/:year', async (req, res) => {
   }
 });
 
-
+/*
+  This query will get only one specific race from given season year and  specified by round number
+*/
 app.get('/api/races/season/:year/:round', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -303,7 +341,9 @@ app.get('/api/races/season/:year/:round', async (req, res) => {
   }
 });
 
-
+/*
+  This query will get all races from given circuit using circuitRef also being order by order 
+*/
 app.get('/api/races/circuits/:ref', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -327,7 +367,9 @@ app.get('/api/races/circuits/:ref', async (req, res) => {
   }
 });
 
-
+/*
+  This query will get all races from given circuit using circuitRef but between start and end years 
+*/
 app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -340,7 +382,7 @@ app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
     if (error) {
         throw error;
     }  
-      
+    // These handle error checking for both the years and ref to see if they exist and if the year orientation is correct
     if (!data || data.length === 0) {
       
       const {data, error} = await supabase
@@ -361,7 +403,7 @@ app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
         return errorHanldingYear(res, req, data[0].year) 
       }  
       
-        //return errorHandler(res, req.params.ref)    
+
     }
 
     res.send(data);
@@ -370,12 +412,13 @@ app.get('/api/races/circuits/:ref/season/:start/:end', async (req, res) => {
   }
 });
 
-
+/*
+  This query will returns the results for the specified race but it's not providing the foreign keys for the race, driver, and constructor
+*/
 app.get('/api/results/:raceId', async (req, res) => {
   try{
       const {data, error} = await supabase
       .from('results')
-      //.select(`drivers(driverRef, code, forename, surname),races(name, round, year,date),constructors(name, constructorRef, nationality)` )
       .select(`resultId, number, grid, 
               position, positionText, positionOrder, points, laps, time, milliseconds, 
               fastestLap, rank, fastestLapTime, fastestLapSpeed, statusId, 
@@ -399,6 +442,9 @@ app.get('/api/results/:raceId', async (req, res) => {
   }
 });
 
+/*
+  This query will returns all the results for a given driver
+*/
 app.get('/api/results/driver/:ref', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -420,7 +466,9 @@ app.get('/api/results/driver/:ref', async (req, res) => {
   }
 });
 
-
+/*
+  This query will returns all the results for a given driver between start and end year 
+*/
 app.get('/api/results/driver/:ref/seasons/:start/:end', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -434,7 +482,7 @@ app.get('/api/results/driver/:ref/seasons/:start/:end', async (req, res) => {
         //console.log(error)
         throw error;
     }  
-      
+    // These handle error checking for both the years and ref to see if they exist and if the year orientation is correct  
     if (!data || data.length === 0) {
         
       const {data, error} = await supabase
@@ -463,7 +511,9 @@ app.get('/api/results/driver/:ref/seasons/:start/:end', async (req, res) => {
   }
 });
 
-// Come back to this, make sure this is correct 
+/* 
+  This query returns the qualifying results for the specified race
+*/
 app.get('/api/qualifying/:raceId', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -486,7 +536,9 @@ app.get('/api/qualifying/:raceId', async (req, res) => {
   }
 });
 
-
+/* 
+  This query returns the qualifying results for the specified race
+*/
 app.get('/api/standings/:raceId/drivers', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -509,6 +561,9 @@ app.get('/api/standings/:raceId/drivers', async (req, res) => {
   }
 });
 
+/* 
+  This query returns the qualifying results for the specified race
+*/
 app.get('/api/standings/:raceId/constructors', async (req, res) => {
   try{
       const {data, error} = await supabase
@@ -534,12 +589,16 @@ app.get('/api/standings/:raceId/constructors', async (req, res) => {
 
 
 
-
+// This error handling sets that parameter does not exist 
 const errorHandler = (res,req) => {
   return res.json({ error: `${req} does not exist in database` }); 
 }
 
-
+/* 
+  This error handling will check if the years parameters are configured correctly, checks if start year is greater than end year then it will return error,
+  while next error checks if start year is greater than the latest year in the database it will also return error and 
+  finally the last error is that the data was not found between those years. 
+*/
 const errorHanldingYear = (res,req,latest_year) => {
   
     if(req.params.start > req.params.end ){
@@ -550,7 +609,9 @@ const errorHanldingYear = (res,req,latest_year) => {
         return res.json({ error: `No data found for ${req.params.ref} between these years ${req.params.start}-${req.params.end}`});
     }
 }
-
+/*
+  This error handling will set that ref they entered in does not exist. 
+*/
  const errorHanldingRef = (res,req) => {
      return res.json({ error: `Error the ref you entered in (${req.params.ref}) does not exist in database`})
  }
