@@ -3,7 +3,7 @@ const supa = require('@supabase/supabase-js');
 const app = express();
 
 
-
+// Both of these are in my glitch .env files
 const supaUrl = process.env.supaUrl;
 const supaAnonKey = process.env.supaAnonKey;
 
