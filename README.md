@@ -2,9 +2,9 @@
 
 #Example API Requests
 
-https://w2024-assign1.glitch.me/api/seasons\
+https://w2024-assign1.glitch.me/api/seasons<br/>
 
-https://w2024-assign1.glitch.me/api/circuits\
+https://w2024-assign1.glitch.me/api/circuits<br/>
 
 https://w2024-assign1.glitch.me/api/circuits/monza\
 
